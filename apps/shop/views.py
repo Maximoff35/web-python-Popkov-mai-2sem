@@ -4,7 +4,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Product, Cart, CartItem
-from .serializers import ProductSerializer, AddToCartSerializer
+from .serializers import ProductSerializer, AddToCartSerializer, CartSerializer
+
 
 # Create your views here.
 class ProductListView(ListAPIView):
@@ -55,3 +56,15 @@ class AddToCartView(APIView):
             cart_item.quantity = quantity
         cart_item.save()
         return Response({'message': 'Товар добавлен в корзину.'})
+
+
+class CartView(APIView):
+    """
+    Endpoint для получения корзины юзера.
+    Возвращает корзину и список товаров в ней.
+    """
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        serializer = CartSerializer(cart)
+        return Response(serializer.data)
