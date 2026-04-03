@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 
-from .models import Product, Cart, CartItem
+from .models import Product, Cart, CartItem, Order, OrderItem
 from .serializers import ProductSerializer, AddToCartSerializer, CartSerializer
 
 
@@ -70,3 +70,23 @@ class CartView(APIView):
         cart, created = Cart.objects.get_or_create(user=request.user)
         serializer = CartSerializer(cart)
         return Response(serializer.data)
+
+
+class CreateOrderView(APIView):
+    """
+    Endpoint для создания заказа из корзины.
+    Создает заказ, переносит в него все товары из корзины, очищает корзину.
+    """
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        user = request.user
+        cart, created = Cart.objects.get_or_create(user=user)
+        cart_items = cart.items.all()
+        if not cart_items.exists():
+            return Response({'error': 'Корзина пуста.'}, status=status.HTTP_400_BAD_REQUEST)
+        order = Order.objects.create(user=user)
+        for item in cart_items:
+            OrderItem.objects.create(order=order, product=item.product, quantity=item.quantity, price=item.product.price)
+        cart_items.delete()
+        return Response({'message': 'Заказ создан.', 'order_id': order.id}, status=status.HTTP_201_CREATED)
+    
