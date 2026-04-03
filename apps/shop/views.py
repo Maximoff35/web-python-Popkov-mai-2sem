@@ -2,6 +2,8 @@ from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
 
 from .models import Product, Cart, CartItem
 from .serializers import ProductSerializer, AddToCartSerializer, CartSerializer
@@ -45,7 +47,7 @@ class AddToCartView(APIView):
         serializer.is_valid(raise_exception=True)
         product_id = serializer.validated_data['product_id']
         quantity = serializer.validated_data['quantity']
-        product = Product.objects.get(id=product_id)
+        product = Product.objects.get_object_or_404(id=product_id)
         if not request.user.is_authenticated:
             return Response({'error': 'Not authenticated'}, status=401)
         cart, created = Cart.objects.get_or_create(user=request.user)
