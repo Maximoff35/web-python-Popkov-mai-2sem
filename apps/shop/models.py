@@ -38,8 +38,11 @@ class Cart(models.Model):
     Временное хранилище товаров перед оформлением заказа.
     Один пользователь может иметь одну активную корзину.
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='cart')
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Корзина пользователя {self.user.username}'
 
 class CartItem(models.Model):
     """
@@ -50,6 +53,14 @@ class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['cart', 'product'], name='unique_cart_product'),
+        ]
+
+    def __str__(self):
+        return f'{self.product.name} x {self.quantity}'
 
 
 class Order(models.Model):
@@ -67,6 +78,9 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(choices=STATUS_CHOICES, default='new', max_length=20)
 
+    def __str__(self):
+        return f'Заказ #{self.id} пользователя {self.user.username}'
+
 class OrderItem(models.Model):
     """
     Позиция в заказе.
@@ -77,3 +91,11 @@ class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['order', 'product'], name='unique_order_product'),
+        ]
+
+    def __str__(self):
+        return f'{self.product.name} x {self.quantity} в заказе #{self.order.id}'
