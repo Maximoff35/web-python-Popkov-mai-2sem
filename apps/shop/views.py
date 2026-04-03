@@ -47,7 +47,7 @@ class AddToCartView(APIView):
         serializer.is_valid(raise_exception=True)
         product_id = serializer.validated_data['product_id']
         quantity = serializer.validated_data['quantity']
-        product = Product.objects.get_object_or_404(id=product_id)
+        product = get_object_or_404(Product, id=product_id, is_active=True)
         if not request.user.is_authenticated:
             return Response({'error': 'Not authenticated'}, status=401)
         cart, created = Cart.objects.get_or_create(user=request.user)
