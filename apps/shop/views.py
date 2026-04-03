@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+from django.db import transaction
 
 from .models import Product, Cart, CartItem, Order, OrderItem
 from .serializers import ProductSerializer, AddToCartSerializer, CartSerializer, OrderSerializer
@@ -84,10 +85,19 @@ class CreateOrderView(APIView):
         cart_items = cart.items.all()
         if not cart_items.exists():
             return Response({'error': 'Корзина пуста.'}, status=status.HTTP_400_BAD_REQUEST)
-        order = Order.objects.create(user=user)
         for item in cart_items:
-            OrderItem.objects.create(order=order, product=item.product, quantity=item.quantity, price=item.product.price)
-        cart_items.delete()
+            product = item.product
+            if product.stock < item.quantity:
+                return Response({'error': f'Недостаточно товара "{product.name}" на складе.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+        with transaction.atomic():
+            order = Order.objects.create(user=user)
+            for item in cart_items:
+                product = item.product
+                OrderItem.objects.create(order=order, product=product, quantity=item.quantity, price=product.price)
+                product.stock -= item.quantity
+                product.save()
+            cart_items.delete()
         return Response({'message': 'Заказ создан.', 'order_id': order.id}, status=status.HTTP_201_CREATED)
 
 
