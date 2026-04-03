@@ -99,3 +99,13 @@ class OrderListView(ListAPIView):
     permission_classes = [IsAuthenticated]
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user).order_by('-created_at')
+
+class OrderDetailView(RetrieveAPIView):
+    """
+    Endpoint для получения одного заказа по id.
+    Юзер может получить только свой заказ.
+    """
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
