@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, CartItem, Cart
+from .models import Product, CartItem, Cart, OrderItem, Order
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -48,3 +48,30 @@ class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
         fields = ['id', 'items']
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор модели OrderItem.
+    Используется для преобразования позиции заказа в JSON
+    при GET-запросе данных о заказах.
+    """
+    product_id = serializers.IntegerField(source='product.id', read_only=True)
+    product_name = serializers.CharField(source='product.name', read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ['id', 'product_id', 'product_name', 'quantity', 'price']
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор модели Order.
+    Используется для преобразования заказа в JSON
+    при GET-запросе данных о заказах.
+    """
+    items = OrderItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Order
+        fields = ['id', 'status', 'created_at', 'items']

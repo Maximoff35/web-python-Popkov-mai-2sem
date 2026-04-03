@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 
 from .models import Product, Cart, CartItem, Order, OrderItem
-from .serializers import ProductSerializer, AddToCartSerializer, CartSerializer
+from .serializers import ProductSerializer, AddToCartSerializer, CartSerializer, OrderSerializer
 
 
 # Create your views here.
@@ -89,4 +89,13 @@ class CreateOrderView(APIView):
             OrderItem.objects.create(order=order, product=item.product, quantity=item.quantity, price=item.product.price)
         cart_items.delete()
         return Response({'message': 'Заказ создан.', 'order_id': order.id}, status=status.HTTP_201_CREATED)
-    
+
+
+class OrderListView(ListAPIView):
+    """
+    Endpoint для получения списка заказов текущего пользователя.
+    """
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user).order_by('-created_at')
