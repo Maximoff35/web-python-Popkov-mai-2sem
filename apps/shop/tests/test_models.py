@@ -143,3 +143,49 @@ def test_order_cannot_duplicate_product_items():
     OrderItem.objects.create(order=order, product=product, quantity=1, price=100000)
     with pytest.raises(IntegrityError):
         OrderItem.objects.create(order=order, product=product, quantity=2, price=100000)
+
+@pytest.mark.django_db
+def test_cart_str_returns_username():
+    user = User.objects.create(username='max', password='12345')
+    cart = Cart.objects.create(user=user)
+    assert str(cart) == 'Корзина пользователя max'
+
+@pytest.mark.django_db
+def test_cart_item_str_returns_product_name_and_quantity():
+    user = User.objects.create(username='max', password='12345')
+    category = Category.objects.create(name='Телефоны', slug='phones')
+    product = Product.objects.create(
+        category=category,
+        name='iPhone 16',
+        slug='iPhone-16',
+        description='Предпоследний айфон',
+        price=100000,
+        stock=5,
+        is_active=True,
+    )
+    cart = Cart.objects.create(user=user)
+    cart_item = CartItem.objects.create(cart=cart, product=product, quantity=2)
+    assert str(cart_item) == 'iPhone 16 x 2'
+
+@pytest.mark.django_db
+def test_order_str_returns_id_and_username():
+    user = User.objects.create(username='max', password='12345')
+    order = Order.objects.create(user=user)
+    assert str(order) == f'Заказ #{order.id} пользователя max'
+
+@pytest.mark.django_db
+def test_order_item_str_returns_product_name_quantity_and_order_id():
+    user = User.objects.create(username='max', password='12345')
+    category = Category.objects.create(name='Телефоны', slug='phones')
+    product = Product.objects.create(
+        category=category,
+        name='iPhone 16',
+        slug='iPhone-16',
+        description='Предпоследний айфон',
+        price=100000,
+        stock=5,
+        is_active=True,
+    )
+    order = Order.objects.create(user=user)
+    order_item = OrderItem.objects.create(order=order, product=product, quantity=2, price=100000)
+    assert str(order_item) == f'iPhone 16 x 2 в заказе #{order.id}'

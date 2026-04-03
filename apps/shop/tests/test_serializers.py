@@ -1,13 +1,13 @@
-from itertools import product
-
 import pytest
 from django.contrib.auth.models import User
-from apps.shop.models import Category, Product, Cart, CartItem
+from apps.shop.models import Category, Product, Cart, CartItem, Order, OrderItem
 from apps.shop.serializers import (
     ProductSerializer,
     AddToCartSerializer,
     CartItemSerializer,
     CartSerializer,
+    OrderItemSerializer,
+    OrderSerializer,
 )
 
 @pytest.mark.django_db
@@ -130,3 +130,73 @@ def test_cart_serializer_returns_items():
             },
         ],
     }
+
+@pytest.mark.django_db
+def test_order_item_serializer_returns_correct_data():
+    user = User.objects.create(username='max', password='12345')
+    category = Category.objects.create(name='Телефоны', slug='phones')
+    product = Product.objects.create(
+        category=category,
+        name='iPhone 16',
+        slug='iPhone-16',
+        description='Предпоследний айфон',
+        price=100000,
+        stock=5,
+        is_active=True,
+    )
+    order = Order.objects.create(user=user)
+    order_item = OrderItem.objects.create(order=order, product=product, quantity=2, price=100000)
+    serializer = OrderItemSerializer(order_item)
+    assert serializer.data == {
+        'id': order_item.id,
+        'product_id': product.id,
+        'product_name': 'iPhone 16',
+        'price': '100000.00',
+        'quantity': 2,
+    }
+
+@pytest.mark.django_db
+def test_order_serializer_returns_items():
+    user = User.objects.create(username='max', password='12345')
+    category = Category.objects.create(name='Телефоны', slug='phones')
+    product1 = Product.objects.create(
+        category=category,
+        name='iPhone 16',
+        slug='iPhone-16',
+        description='Предпоследний айфон',
+        price=100000,
+        stock=5,
+        is_active=True,
+    )
+    product2 = Product.objects.create(
+        category=category,
+        name='Ксяоми',
+        slug='xiaomi',
+        description='Китайский телефон',
+        price=5000,
+        stock=10,
+        is_active=True,
+    )
+    order = Order.objects.create(user=user)
+    order_item1 = OrderItem.objects.create(order=order, product=product1, quantity=2, price=100000)
+    order_item2 = OrderItem.objects.create(order=order, product=product2, quantity=5, price=5000)
+    serializer = OrderSerializer(order)
+    assert serializer.data['id'] == order.id
+    assert serializer.data['status'] == 'new'
+    assert 'created_at' in serializer.data
+    assert serializer.data['items'] == [
+        {
+            'id': order_item1.id,
+            'product_id': product1.id,
+            'product_name': 'iPhone 16',
+            'price': '100000.00',
+            'quantity': 2,
+        },
+        {
+            'id': order_item2.id,
+            'product_id': product2.id,
+            'product_name': 'Ксяоми',
+            'price': '5000.00',
+            'quantity': 5,
+        },
+    ]
