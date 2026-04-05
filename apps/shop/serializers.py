@@ -20,7 +20,7 @@ class AddToCartSerializer(serializers.Serializer):
     - quantity: количество шт (1 по умолчанию)
     """
     product_id = serializers.IntegerField()
-    quantity = serializers.IntegerField(default=1)
+    quantity = serializers.IntegerField(default=1, min_value=1)
 
 class CartItemSerializer(serializers.ModelSerializer):
     """
