@@ -4,10 +4,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from django.db import transaction
 
-from apps.shop.models import Product, Cart, CartItem, Order, OrderItem
+from apps.shop.models import Product, Cart, CartItem, Order
 from apps.shop.api.serializers import ProductSerializer, AddToCartSerializer, CartSerializer, OrderSerializer
+from apps.shop.services.order_service import create_order_from_cart
 
 
 # Create your views here.
@@ -85,29 +85,23 @@ class CartView(APIView):
 class CreateOrderView(APIView):
     """
     Endpoint для создания заказа из корзины.
-    Создает заказ, переносит в него все товары из корзины, очищает корзину.
+    HTTP-слой только принимает запрос и вызывает сервис.
     """
     permission_classes = [IsAuthenticated]
+
     def post(self, request):
-        user = request.user
-        cart, created = Cart.objects.get_or_create(user=user)
-        cart_items = cart.items.all()
-        if not cart_items.exists():
-            return Response({'error': 'Корзина пуста.'}, status=status.HTTP_400_BAD_REQUEST)
-        for item in cart_items:
-            product = item.product
-            if product.stock < item.quantity:
-                return Response({'error': f'Недостаточно товара "{product.name}" на складе.'},
-                                status=status.HTTP_400_BAD_REQUEST)
-        with transaction.atomic():
-            order = Order.objects.create(user=user)
-            for item in cart_items:
-                product = item.product
-                OrderItem.objects.create(order=order, product=product, quantity=item.quantity, price=product.price)
-                product.stock -= item.quantity
-                product.save()
-            cart_items.delete()
-        return Response({'message': 'Заказ создан.', 'order_id': order.id}, status=status.HTTP_201_CREATED)
+        """
+        Обрабатывает POST-запрос создания заказа из корзины.
+        """
+        result = create_order_from_cart(request.user)
+
+        if isinstance(result, Response):
+            return result
+
+        return Response(
+            {'message': 'Заказ создан.', 'order_id': result.id},
+            status=status.HTTP_201_CREATED
+        )
 
 
 class OrderListView(ListAPIView):
