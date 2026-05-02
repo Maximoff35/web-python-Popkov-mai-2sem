@@ -6,8 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 
-from .models import Product, Cart, CartItem, Order, OrderItem
-from .serializers import ProductSerializer, AddToCartSerializer, CartSerializer, OrderSerializer
+from apps.shop.models import Product, Cart, CartItem, Order, OrderItem
+from apps.shop.api.serializers import ProductSerializer, AddToCartSerializer, CartSerializer, OrderSerializer
 
 
 # Create your views here.

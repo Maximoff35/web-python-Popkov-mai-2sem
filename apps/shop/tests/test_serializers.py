@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth.models import User
 from apps.shop.models import Category, Product, Cart, CartItem, Order, OrderItem
-from apps.shop.serializers import (
+from apps.shop.api.serializers import (
     ProductSerializer,
     AddToCartSerializer,
     CartItemSerializer,

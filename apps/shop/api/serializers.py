@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, CartItem, Cart, OrderItem, Order
+from apps.shop.models import Product, CartItem, Cart, OrderItem, Order
 
 
 class ProductSerializer(serializers.ModelSerializer):
