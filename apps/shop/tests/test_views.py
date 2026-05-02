@@ -67,7 +67,7 @@ def test_product_detail_returns_404_for_not_active_product():
     assert response.status_code == 404
 
 @pytest.mark.django_db
-def test_add_to_cart_returns_401_for_not_authenticated_user():
+def test_add_to_cart_returns_403_for_not_authenticated_user():
     category = Category.objects.create(name='Телефоны', slug='phones')
     product = Product.objects.create(
         category=category,
@@ -80,8 +80,7 @@ def test_add_to_cart_returns_401_for_not_authenticated_user():
     )
     client = APIClient()
     response = client.post('/api/shop/cart/add/', {'product_id': product.id, 'quantity': 3}, format='json')
-    assert response.status_code == 401
-    assert response.data == {'error': 'Not authenticated'}
+    assert response.status_code == 403
 
 @pytest.mark.django_db
 def test_add_to_cart_creates_cart_and_cart_item():

@@ -3,11 +3,11 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import get_object_or_404
 
-from apps.shop.models import Product, Cart, CartItem, Order
+from apps.shop.models import Product, Cart, Order
 from apps.shop.api.serializers import ProductSerializer, AddToCartSerializer, CartSerializer, OrderSerializer
 from apps.shop.services.order_service import create_order_from_cart
+from apps.shop.services.cart_service import add_product_to_cart
 
 
 # Create your views here.
@@ -43,30 +43,21 @@ class AddToCartView(APIView):
     Если товар уже есть в корзине, увеличивает количество.
     Если нет, создает новую позицию.
     """
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         """
         Обрабатывает POST-запрос добавления товара в корзину.
         Ожидает id товара и количество.
-        Логика:
-        - валидирует входные данные
-        - находит товар
-        - получает или создает корзину
-        - добавляет товар в корзину или увеличивает количество.
         """
         serializer = AddToCartSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        product_id = serializer.validated_data['product_id']
-        quantity = serializer.validated_data['quantity']
-        product = get_object_or_404(Product, id=product_id, is_active=True)
-        if not request.user.is_authenticated:
-            return Response({'error': 'Not authenticated'}, status=401)
-        cart, created = Cart.objects.get_or_create(user=request.user)
-        cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
-        if not created:
-            cart_item.quantity += quantity
-        else:
-            cart_item.quantity = quantity
-        cart_item.save()
+
+        add_product_to_cart(
+            user=request.user,
+            product_id=serializer.validated_data['product_id'],
+            quantity=serializer.validated_data['quantity']
+        )
+
         return Response({'message': 'Товар добавлен в корзину.'})
 
 
