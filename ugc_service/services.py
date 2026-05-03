@@ -1,7 +1,7 @@
 import requests
 from typing import List
 from ugc_service.config import Config
-from ugc_service.errors import DjangoServiceUnavailable, ProductNotFound
+from ugc_service.errors import DjangoServiceUnavailable, ProductNotFound, ReviewNotFound
 from ugc_service.models import Review
 from ugc_service.extensions import db
 
@@ -50,3 +50,14 @@ def get_reviews(product_id: int | None = None, only_active: bool = True) -> List
     if only_active:
         query = query.filter_by(status=Review.STATUS_ACTIVE)
     return query.order_by(Review.created_at.desc()).all()
+
+def update_review_status(review_id: int, status: str) -> Review:
+    """
+    Изменяет статус отзыва.
+    """
+    review = Review.query.get(review_id)
+    if review is None:
+        raise ReviewNotFound(details={'review_id': review_id})
+    review.status = status
+    db.session.commit()
+    return review

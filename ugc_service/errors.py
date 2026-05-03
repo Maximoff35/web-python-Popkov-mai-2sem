@@ -34,6 +34,18 @@ class DjangoServiceUnavailable(UgcException):
     status_code = 503
 
 
+class ReviewNotFound(UgcException):
+    error_code = 'REVIEW_NOT_FOUND'
+    message = 'Отзыв не найден. '
+    status_code = 404
+
+
+class InvalidStatus(UgcException):
+    error_code = 'INVALID_STATUS'
+    message = 'Некорректный статус отзыва.'
+    status_code = 400
+
+
 def error_response(error: UgcException) -> Tuple[Response, int]:
     """
     Преобразует доменную ошибку в HTTP-ответ.

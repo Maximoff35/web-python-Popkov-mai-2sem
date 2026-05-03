@@ -1,4 +1,5 @@
 from ugc_service.errors import ValidationError
+from ugc_service.models import Review
 
 
 def validate_review_create_data(data: dict) -> dict:
@@ -70,3 +71,25 @@ def validate_product_id_query(value):
     if product_id <= 0:
         raise ValidationError(details={'product_id': 'Должно быть натуральным числом.'})
     return product_id
+
+
+def validate_review_status_data(data: dict) -> dict:
+    """
+    Валидирует данные для изменения статуса.
+    """
+    if not isinstance(data, dict):
+        raise ValidationError(details={'body': 'Тело запроса должно быть JSON-объектом.'})
+
+    status = data.get('status')
+    allowed_statuses = [
+        Review.STATUS_ACTIVE,
+        Review.STATUS_PENDING,
+        Review.STATUS_HIDDEN,
+    ]
+    if status is None:
+        raise ValidationError(details={'status': 'Обязательное поле.'})
+    if not isinstance(status, str):
+        raise ValidationError(details={'status': 'Должен быть строкой.'})
+    if status not in allowed_statuses:
+        raise ValidationError(details={'status': f'Допустимые значения {", ".join(allowed_statuses)}.'})
+    return {'status': status}
