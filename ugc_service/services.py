@@ -55,7 +55,7 @@ def update_review_status(review_id: int, status: str) -> Review:
     """
     Изменяет статус отзыва.
     """
-    review = Review.query.get(review_id)
+    review = db.session.get(Review, review_id)
     if review is None:
         raise ReviewNotFound(details={'review_id': review_id})
     review.status = status
