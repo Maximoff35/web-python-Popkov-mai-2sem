@@ -314,7 +314,10 @@ def test_create_order_returns_400_for_empty_cart():
     client.force_authenticate(user=user)
     response = client.post('/api/shop/orders/create/', format='json')
     assert response.status_code == 400
-    assert response.data == {'error': 'Корзина пуста.'}
+    assert 'error_code' in response.data
+    assert 'message' in response.data
+    assert 'details' in response.data
+    assert response.data['error_code'] == 'EMPTY_CART'
 
 @pytest.mark.django_db
 def test_create_order_from_cart():
@@ -375,7 +378,10 @@ def test_create_order_returns_400_if_not_enough_stock():
     client.force_authenticate(user=user)
     response = client.post('/api/shop/orders/create/', format='json')
     assert response.status_code == 400
-    assert response.data == {'error': 'Недостаточно товара "iPhone 16" на складе.'}
+    assert 'error_code' in response.data
+    assert 'message' in response.data
+    assert 'details' in response.data
+    assert response.data['error_code'] == 'NOT_ENOUGH_STOCK'
     assert Order.objects.count() == 0
     product.refresh_from_db()
     assert product.stock == 1
