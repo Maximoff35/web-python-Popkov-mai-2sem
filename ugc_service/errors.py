@@ -22,6 +22,17 @@ class ValidationError(UgcException):
     status_code = 400
 
 
+class ProductNotFound(UgcException):
+    error_code = 'PRODUCT_NOT_FOUND'
+    message = 'Товар не найден.'
+    status_code = 404
+
+
+class DjangoServiceUnavailable(UgcException):
+    error_code = 'DJANGO_SERVICE_UNAVAILABLE'
+    message = 'Сервис товаров недоступен.'
+    status_code = 503
+
 
 def error_response(error: UgcException) -> Tuple[Response, int]:
     """
