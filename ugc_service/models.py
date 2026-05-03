@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from ugc_service.extensions import db
 
 
@@ -19,7 +19,7 @@ class Review(db.Model):
     text = db.Column(db.Text, nullable=False)
     rating = db.Column(db.Integer, nullable=False)
     status = db.Column(db.String(20), nullable=False, default=STATUS_PENDING)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.now(UTC))
 
     def to_dict(self):
         return {
