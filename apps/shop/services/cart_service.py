@@ -22,3 +22,4 @@ def add_product_to_cart(user, product_id, quantity):
     else:
         cart_item.quantity = quantity
     cart_item.save()
+    return cart_item
