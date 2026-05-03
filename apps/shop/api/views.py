@@ -8,6 +8,8 @@ from apps.shop.models import Product, Cart, Order
 from apps.shop.api.serializers import ProductSerializer, AddToCartSerializer, CartSerializer, OrderSerializer
 from apps.shop.services.order_service import create_order_from_cart
 from apps.shop.services.cart_service import add_product_to_cart
+from apps.shop.domain.exceptions import ShopDomainException
+from apps.shop.api.error_handlers import domain_exception_response
 
 
 # Create your views here.
@@ -52,11 +54,14 @@ class AddToCartView(APIView):
         serializer = AddToCartSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        add_product_to_cart(
-            user=request.user,
-            product_id=serializer.validated_data['product_id'],
-            quantity=serializer.validated_data['quantity']
-        )
+        try:
+            add_product_to_cart(
+                user=request.user,
+                product_id=serializer.validated_data['product_id'],
+                quantity=serializer.validated_data['quantity']
+            )
+        except ShopDomainException as error:
+            return domain_exception_response(error)
 
         return Response({'message': 'Товар добавлен в корзину.'})
 
@@ -84,10 +89,10 @@ class CreateOrderView(APIView):
         """
         Обрабатывает POST-запрос создания заказа из корзины.
         """
-        result = create_order_from_cart(request.user)
-
-        if isinstance(result, Response):
-            return result
+        try:
+            result = create_order_from_cart(request.user)
+        except ShopDomainException as error:
+            return domain_exception_response(error)
 
         return Response(
             {'message': 'Заказ создан.', 'order_id': result.id},
@@ -103,6 +108,7 @@ class OrderListView(ListAPIView):
     permission_classes = [IsAuthenticated]
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user).order_by('-created_at')
+
 
 class OrderDetailView(RetrieveAPIView):
     """

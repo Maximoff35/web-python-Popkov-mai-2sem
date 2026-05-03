@@ -1,7 +1,6 @@
 from django.db import transaction
-from rest_framework import status
-from rest_framework.response import Response
 from apps.shop.models import Cart, Order, OrderItem
+from apps.shop.domain.exceptions import EmptyCart, NotEnoughStock
 
 
 def create_order_from_cart(user):
@@ -20,17 +19,18 @@ def create_order_from_cart(user):
     cart_items = cart.items.all()
 
     if not cart_items.exists():
-        return Response(
-            {'error': 'Корзина пуста.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        raise EmptyCart()
 
     for item in cart_items:
         product = item.product
         if product.stock < item.quantity:
-            return Response(
-                {'error': f'Недостаточно товара "{product.name}" на складе.'},
-                status=status.HTTP_400_BAD_REQUEST
+            raise NotEnoughStock(
+                details={
+                    'product_id': product.id,
+                    'product_name': product.name,
+                    'available': product.stock,
+                    'requested': item.quantity,
+                }
             )
     with transaction.atomic():
         order = Order.objects.create(user=user)
