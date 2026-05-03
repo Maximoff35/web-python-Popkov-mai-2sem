@@ -1,4 +1,5 @@
 import requests
+from typing import List
 from ugc_service.config import Config
 from ugc_service.errors import DjangoServiceUnavailable, ProductNotFound
 from ugc_service.models import Review
@@ -37,3 +38,15 @@ def create_review(data: dict) -> Review:
     db.session.add(review)
     db.session.commit()
     return review
+
+def get_reviews(product_id: int | None = None, only_active: bool = True) -> List[Review]:
+    """
+    Возвращает список отзывов.
+    Поддерживает фильтрацию по товару и по статусу active.
+    """
+    query = Review.query
+    if product_id is not None:
+        query = query.filter_by(product_id=product_id)
+    if only_active:
+        query = query.filter_by(status=Review.STATUS_ACTIVE)
+    return query.order_by(Review.created_at.desc()).all()

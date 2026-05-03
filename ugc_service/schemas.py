@@ -56,3 +56,17 @@ def validate_review_create_data(data: dict) -> dict:
         'text': text.strip(),
         'rating': rating,
     }
+
+def validate_product_id_query(value):
+    """
+    Валидирует product_id из query-параметров.
+    """
+    if value is None:
+        return None
+    try:
+        product_id = int(value)
+    except ValueError:
+        raise ValidationError(details={'product_id': 'Должно быть целым числом.'})
+    if product_id <= 0:
+        raise ValidationError(details={'product_id': 'Должно быть натуральным числом.'})
+    return product_id
