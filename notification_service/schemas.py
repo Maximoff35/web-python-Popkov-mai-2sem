@@ -16,3 +16,16 @@ class NotificationResponseSchema(BaseModel):
     status: str
     detail: str
 
+class TokenRequestSchema(BaseModel):
+    """
+    Схема входных данных для получения токена.
+    """
+    username: str = Field(..., min_length=1)
+    password: str = Field(..., min_length=1)
+
+class TokenResponseSchema(BaseModel):
+    """
+    Схема ответа с токеном.
+    """
+    access_token: str
+    token_type: str
