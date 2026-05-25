@@ -27,22 +27,43 @@ async def get_order_from_django(order_id: int) -> dict:
     Асинхронно получает данные заказа из Django API.
     """
     url = f'{Config.DJANGO_SHOP_API_URL}/orders/{order_id}/'
+    logger.info(
+        'Requesting order from Django API: order_id=%s',
+        order_id,
+    )
     try:
         async with httpx.AsyncClient(timeout=3) as client:
             response = await client.get(url)
     except httpx.RequestError:
+        logger.error(
+            'Django shop service unavailable while requesting order: order_id=%s',
+            order_id,
+        )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail='Django shop service unavailable',
         )
     if response.status_code == 404:
+        logger.warning(
+            'Order not found in Django API: order_id=%s',
+            order_id,
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Order not found',
         )
     if response.status_code != 200:
+        logger.error(
+            'Unexpected Django API response: order_id=%s status_code=%s',
+            order_id,
+            response.status_code,
+        )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail='Unexpected response from Django shop service',
         )
+    logger.info(
+        'Order received from Django API: order_id=%s',
+        order_id,
+    )
     return response.json()
