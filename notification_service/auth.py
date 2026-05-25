@@ -11,8 +11,10 @@ security = HTTPBearer()
 
 def authenticate_user(username: str, password: str) -> bool:
     """
-    Проверяет логин и пароль пользователя.
-    hardcoded-пользователь
+    Учебная проверка логина и пароля для демонстрации JWT в notification service.
+
+    В реальном проекте пользователи авторизуются через Django Auth API,
+    а внутренние вызовы notification service защищаются service-to-service token.
     """
     return username == 'admin' and password == 'admin'
 
