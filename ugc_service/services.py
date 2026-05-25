@@ -23,15 +23,15 @@ def check_product_exists(product_id: int) -> None:
     if response.status_code != 200:
         raise DjangoServiceUnavailable(details={'status_code': response.status_code})
 
-def create_review(data: dict) -> Review:
+def create_review(data: dict, user: dict) -> Review:
     """
-    Проверяет существование товара и создает отзыв.
+    Проверяет существование товара и создает отзыв от имени авторизованного пользователя.
     """
     check_product_exists(data['product_id'])
 
     review = Review(
         product_id=data['product_id'],
-        user_name=data['user_name'],
+        user_name=user['username'],
         text=data['text'],
         rating=data['rating'],
     )
@@ -61,3 +61,29 @@ def update_review_status(review_id: int, status: str) -> Review:
     review.status = status
     db.session.commit()
     return review
+
+def get_user_from_django_token(auth_header: str | None) -> dict:
+    """
+    Проверяет JWT пользователя через Django auth API.
+    """
+    if not auth_header:
+        raise DjangoServiceUnavailable(
+            message='Authorization header is required.',
+            details={'authorization': 'Missing Authorization header.'},
+        )
+    try:
+        response = requests.get(
+            Config.DJANGO_AUTH_ME_URL,
+            headers={'Authorization': auth_header},
+            timeout=3,
+        )
+    except requests.RequestException:
+        raise DjangoServiceUnavailable()
+    if response.status_code == 401:
+        raise DjangoServiceUnavailable(
+            message='Invalid or expired user token.',
+            details={'authorization': 'Invalid token.'},
+        )
+    if response.status_code != 200:
+        raise DjangoServiceUnavailable(details={'status_code': response.status_code})
+    return response.json()

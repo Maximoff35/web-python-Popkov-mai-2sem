@@ -50,10 +50,22 @@ def mock_django_unavailable(monkeypatch):
         fake_check_product_exists
     )
 
-def test_create_review_success(client, mock_product_exists):
+@pytest.fixture
+def mock_user_from_django_token(monkeypatch):
+    def fake_get_user_from_django_token(auth_header: str | None):
+        return {
+            'id': 1,
+            'username': 'maxim',
+            'email': 'max@test.ru',
+        }
+    monkeypatch.setattr(
+        'ugc_service.app.get_user_from_django_token',
+        fake_get_user_from_django_token,
+    )
+
+def test_create_review_success(client, mock_product_exists, mock_user_from_django_token):
     response = client.post('/api/ugc/reviews/', json={
         'product_id': 1,
-        'user_name': 'maxim',
         'text': 'Хороший продукт бла бла бла.',
         'rating': 5,
     })
@@ -72,10 +84,9 @@ def test_create_review_not_json(client):
     assert data['error_code'] == 'VALIDATION_ERROR'
     assert 'body' in data['details']
 
-def test_create_review_product_not_found(client, mock_product_not_found):
+def test_create_review_product_not_found(client, mock_product_not_found, mock_user_from_django_token):
     response = client.post('/api/ugc/reviews/', json={
         'product_id': 999,
-        'user_name': 'maxim',
         'text': 'Хороший продукт бла бла бла.',
         'rating': 5,
     })

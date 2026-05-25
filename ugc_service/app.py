@@ -8,7 +8,7 @@ from ugc_service.schemas import (
     validate_product_id_query,
     validate_review_status_data,
 )
-from ugc_service.services import create_review, get_reviews, update_review_status
+from ugc_service.services import create_review, get_reviews, update_review_status, get_user_from_django_token
 
 
 def create_app(test_config=None):
@@ -28,7 +28,8 @@ def create_app(test_config=None):
     @app.post('/api/ugc/reviews/')
     def create_review_view():
         raw_data = validate_review_create_data(request.get_json(silent=True))
-        review = create_review(raw_data)
+        user = get_user_from_django_token(request.headers.get('Authorization'))
+        review = create_review(raw_data, user=user)
         return jsonify(review.to_dict()), 201
 
     @app.get('/api/ugc/reviews/')

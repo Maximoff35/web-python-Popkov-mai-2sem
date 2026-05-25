@@ -11,7 +11,6 @@ def validate_review_create_data(data: dict) -> dict:
         raise ValidationError(details={'body': 'Тело запроса должно быть JSON-объектом.'})
 
     product_id = data.get('product_id')
-    user_name = data.get('user_name')
     text = data.get('text')
     rating = data.get('rating')
 
@@ -20,15 +19,6 @@ def validate_review_create_data(data: dict) -> dict:
         errors['product_id'] = 'Обязательное поле.'
     elif not isinstance(product_id, int):
         errors['product_id'] = 'Должно быть целым числом.'
-
-    if user_name is None:
-        errors['user_name'] = 'Обязательное поле.'
-    elif not isinstance(user_name, str):
-        errors['user_name'] = 'Должно быть строкой.'
-    elif not user_name.strip():
-        errors['user_name'] = 'Не может быть пустым.'
-    elif len(user_name.strip()) > 100:
-        errors['user_name'] = 'Максимальная длина - 100 символов.'
 
     if text is None:
         errors['text'] = 'Обязательное поле.'
@@ -53,7 +43,6 @@ def validate_review_create_data(data: dict) -> dict:
 
     return {
         'product_id': product_id,
-        'user_name': user_name.strip(),
         'text': text.strip(),
         'rating': rating,
     }

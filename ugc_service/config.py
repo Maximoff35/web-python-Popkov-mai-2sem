@@ -12,4 +12,9 @@ class Config:
         'DJANGO_SHOP_API_URL',
         'http://127.0.0.1:8000/api/shop'
     )
+
+    DJANGO_AUTH_ME_URL = os.getenv(
+        'DJANGO_AUTH_ME_URL',
+        'http://127.0.0.1:8000/api/auth/me/'
+    )
     
