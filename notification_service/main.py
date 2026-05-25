@@ -1,4 +1,5 @@
 from fastapi import FastAPI, BackgroundTasks, Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from notification_service.schemas import (
     NotificationCreateSchema,
     NotificationResponseSchema,
@@ -23,6 +24,13 @@ app = FastAPI(
     title='Notification Service',
     description='FastAPI-сервис для уведомлений.',
     version='1.0.0',
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
 )
 logger.info('Notification service started')
 

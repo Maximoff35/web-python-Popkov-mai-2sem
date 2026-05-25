@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from ugc_service.extensions import db
 from ugc_service.config import Config
 from ugc_service.errors import UgcException, error_response
@@ -16,6 +17,7 @@ def create_app(test_config=None):
 
     if test_config is not None:
         app.config.update(test_config)
+    CORS(app)
 
     db.init_app(app)
 
