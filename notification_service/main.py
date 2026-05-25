@@ -5,7 +5,7 @@ from notification_service.schemas import (
     TokenResponseSchema,
     TokenRequestSchema,
 )
-from notification_service.services import send_order_created_notification
+from notification_service.services import send_order_created_notification, get_order_from_django
 from notification_service.auth import (
     create_access_token,
     authenticate_user,
@@ -39,6 +39,14 @@ async def login(data: TokenRequestSchema):
     return {
         'access_token': access_token,
         'token_type': 'bearer',
+    }
+
+@app.get('/api/notifications/check-order/{order_id}/')
+async def check_order(order_id: int):
+    order = await get_order_from_django(order_id)
+    return {
+        'status': 'ok',
+        'order': order,
     }
 
 @app.get('/api/notifications/protected/')
