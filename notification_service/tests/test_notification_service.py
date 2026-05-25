@@ -204,3 +204,29 @@ def test_protected_with_invalid_token():
     )
     assert response.status_code == 401
     assert response.json()['detail'] == 'Invalid token'
+
+def test_create_order_notification_with_invalid_service_token():
+    response = client.post(
+        '/api/notifications/order-created/',
+        json={
+            'order_id': 1,
+            'user_id': 1,
+            'message': 'Order created.',
+        },
+        headers={
+            'X-Service-Token': 'wrong-token',
+        },
+    )
+    assert response.status_code == 403
+    assert response.json()['detail'] == 'Invalid service token'
+
+def test_create_order_notification_without_service_token():
+    response = client.post(
+        '/api/notifications/order-created/',
+        json={
+            'order_id': 1,
+            'user_id': 1,
+            'message': 'Order created.',
+        },
+    )
+    assert response.status_code == 422

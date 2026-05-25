@@ -25,6 +25,10 @@ def send_order_created_notification(order_id: int, user_id: int, message: str) -
 async def get_order_from_django(order_id: int) -> dict:
     """
     Асинхронно получает данные заказа из Django API.
+
+    Endpoint используется как учебная демонстрация async HTTP-интеграции.
+    Основной production-сценарий интеграции: Django сам отправляет событие
+    о создании заказа в notification service через service-to-service token.
     """
     url = f'{Config.DJANGO_SHOP_API_URL}/orders/{order_id}/'
     logger.info(

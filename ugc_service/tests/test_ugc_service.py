@@ -97,7 +97,6 @@ def test_create_review_product_not_found(client, mock_product_not_found, mock_us
 def test_create_review_invalid_rating(client):
     response = client.post('/api/ugc/reviews/', json={
         'product_id': 1,
-        'user_name': 'maxim',
         'text': 'Хороший продукт бла бла бла.',
         'rating': 10,
     })
@@ -109,7 +108,6 @@ def test_create_review_invalid_rating(client):
 def test_create_review_empty_text(client):
     response = client.post('/api/ugc/reviews/', json={
         'product_id': 1,
-        'user_name': 'maxim',
         'text': '',
         'rating': 5,
     })
@@ -121,7 +119,6 @@ def test_create_review_empty_text(client):
 def test_create_review_django_unavailable(client, mock_django_unavailable):
     response = client.post('/api/ugc/reviews/', json={
         'product_id': 1,
-        'user_name': 'maxim',
         'text': 'Хороший продукт бла бла бла.',
         'rating': 5,
     })
@@ -216,3 +213,14 @@ def test_update_review_status_not_found(client):
     assert response.status_code == 404
     data = response.get_json()
     assert data['error_code'] == 'REVIEW_NOT_FOUND'
+
+def test_create_review_without_authorization_returns_error(client, mock_product_exists):
+    response = client.post('/api/ugc/reviews/', json={
+        'product_id': 1,
+        'text': 'Хороший продукт бла бла бла.',
+        'rating': 5,
+    })
+    assert response.status_code == 503
+    data = response.get_json()
+    assert data['error_code'] == 'DJANGO_SERVICE_UNAVAILABLE'
+    assert 'authorization' in data['details']
