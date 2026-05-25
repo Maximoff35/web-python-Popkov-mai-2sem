@@ -56,11 +56,17 @@ def test_protected_with_token():
     }
 
 def test_create_order_notification():
-    response = client.post('/api/notifications/order-created/', json={
-        'order_id': 1,
-        'user_id': 1,
-        'message': 'Order created.',
-    })
+    response = client.post(
+        '/api/notifications/order-created/',
+        json={
+            'order_id': 1,
+            'user_id': 1,
+            'message': 'Order created.',
+        },
+       headers={
+           'X-Service-Token': 'dev-service-token',
+       },
+    )
     assert response.status_code == 202
     assert response.json() == {
         'status': 'accepted',
