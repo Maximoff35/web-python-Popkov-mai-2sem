@@ -74,11 +74,17 @@ def test_create_order_notification():
     }
 
 def test_create_order_notification_invalid_data():
-    response = client.post('/api/notifications/order-created/', json={
-        'order_id': -1,
-        'user_id': 1,
-        'message': '',
-    })
+    response = client.post(
+        '/api/notifications/order-created/',
+        json={
+            'order_id': -1,
+            'user_id': 1,
+            'message': '',
+        },
+        headers={
+            'X-Service-Token': 'dev-service-token',
+        },
+    )
     assert response.status_code == 422
 
 def test_check_order_success(monkeypatch):
