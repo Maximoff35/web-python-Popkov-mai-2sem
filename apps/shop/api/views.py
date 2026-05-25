@@ -5,9 +5,15 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
 from apps.shop.models import Product, Cart, Order
-from apps.shop.api.serializers import ProductSerializer, AddToCartSerializer, CartSerializer, OrderSerializer
+from apps.shop.api.serializers import (
+    ProductSerializer,
+    AddToCartSerializer,
+    CartSerializer,
+    OrderSerializer,
+    UpdateCartItemSerializer
+)
 from apps.shop.services.order_service import create_order_from_cart
-from apps.shop.services.cart_service import add_product_to_cart
+from apps.shop.services.cart_service import add_product_to_cart, update_cart_item_quantity, delete_cart_item
 from apps.shop.domain.exceptions import ShopDomainException
 from apps.shop.api.error_handlers import domain_exception_response
 
@@ -119,3 +125,37 @@ class OrderDetailView(RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user)
+
+
+class CartItemDetailView(APIView):
+    """
+    Endpoint изменения и удаления позиции корзины.
+    """
+    permission_classes = [IsAuthenticated]
+    def patch(self, request, pk):
+        serializer = UpdateCartItemSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            cart_item = update_cart_item_quantity(
+                user=request.user,
+                cart_item_id=pk,
+                quantity=serializer.validated_data['quantity'],
+            )
+        except ShopDomainException as error:
+            return domain_exception_response(error)
+        return Response({
+            'message': 'Количество обновлено.',
+            'quantity': cart_item.quantity,
+        })
+
+    def delete(self, request, pk):
+        try:
+            delete_cart_item(
+                user=request.user,
+                cart_item_id=pk,
+            )
+        except ShopDomainException as error:
+            return domain_exception_response(error)
+        return Response({
+            'message': 'Товар удалён из корзины.'
+        })

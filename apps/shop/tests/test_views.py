@@ -67,7 +67,7 @@ def test_product_detail_returns_404_for_not_active_product():
     assert response.status_code == 404
 
 @pytest.mark.django_db
-def test_add_to_cart_returns_403_for_not_authenticated_user():
+def test_add_to_cart_returns_401_for_not_authenticated_user():
     category = Category.objects.create(name='Телефоны', slug='phones')
     product = Product.objects.create(
         category=category,
@@ -80,7 +80,7 @@ def test_add_to_cart_returns_403_for_not_authenticated_user():
     )
     client = APIClient()
     response = client.post('/api/shop/cart/add/', {'product_id': product.id, 'quantity': 3}, format='json')
-    assert response.status_code == 403
+    assert response.status_code == 401
 
 @pytest.mark.django_db
 def test_add_to_cart_creates_cart_and_cart_item():
@@ -135,10 +135,10 @@ def test_add_to_cart_returns_404_for_nonexistent_product():
     assert response.status_code == 404
 
 @pytest.mark.django_db
-def test_cart_view_returns_403_for_not_authenticated_user():
+def test_cart_view_returns_401_for_not_authenticated_user():
     client = APIClient()
     response = client.get('/api/shop/cart/')
-    assert response.status_code == 403
+    assert response.status_code == 401
 
 @pytest.mark.django_db
 def test_cart_view_returns_user_cart():
@@ -283,7 +283,7 @@ def test_product_list_filters_by_category_and_search():
 @pytest.mark.django_db
 def test_product_list_is_paginated():
     phones = Category.objects.create(name='Телефоны', slug='phones')
-    for i in range(6):
+    for i in range(11):
         Product.objects.create(
             category=phones,
             name=f'iPhone {i}',
@@ -296,16 +296,16 @@ def test_product_list_is_paginated():
     client = APIClient()
     response = client.get('/api/shop/products/')
     assert response.status_code == 200
-    assert response.data['count'] == 6
-    assert len(response.data['results']) == 5
+    assert response.data['count'] == 11
+    assert len(response.data['results']) == 10
     assert response.data['next'] is not None
     assert response.data['previous'] is None
 
 @pytest.mark.django_db
-def test_create_order_returns_403_for_not_authenticated_user():
+def test_create_order_returns_401_for_not_authenticated_user():
     client = APIClient()
     response = client.post('/api/shop/orders/create/', format='json')
-    assert response.status_code == 403
+    assert response.status_code == 401
 
 @pytest.mark.django_db
 def test_create_order_returns_400_for_empty_cart():
@@ -388,10 +388,10 @@ def test_create_order_returns_400_if_not_enough_stock():
     assert CartItem.objects.filter(cart=cart).exists()
 
 @pytest.mark.django_db
-def test_order_list_returns_403_for_not_authenticated_user():
+def test_order_list_returns_401_for_not_authenticated_user():
     client = APIClient()
     response = client.get('/api/shop/orders/')
-    assert response.status_code == 403
+    assert response.status_code == 401
 
 @pytest.mark.django_db
 def test_order_list_retuens_only_current_user_orders():
@@ -411,12 +411,12 @@ def test_order_list_retuens_only_current_user_orders():
     assert len(returned_ids) == 2
 
 @pytest.mark.django_db
-def test_order_detail_returns_403_for_not_authenticated_user():
+def test_order_detail_returns_401_for_not_authenticated_user():
     user = User.objects.create(username='max', password='12345')
     order = Order.objects.create(user=user)
     client = APIClient()
     response = client.get(f'/api/shop/orders/{order.id}/', format='json')
-    assert response.status_code == 403
+    assert response.status_code == 401
 
 @pytest.mark.django_db
 def test_order_detail_returns_user_order():
@@ -438,3 +438,176 @@ def test_order_detail_returns_404_for_other_user_order():
     client.force_authenticate(user=user2)
     response = client.get(f'/api/shop/orders/{order.id}/', format='json')
     assert response.status_code == 404
+
+@pytest.mark.django_db
+def test_update_cart_item_quantity():
+    user = User.objects.create(username='max', password='12345')
+    category = Category.objects.create(
+        name='Телефоны',
+        slug='phones',
+    )
+    product = Product.objects.create(
+        category=category,
+        name='iPhone 16',
+        slug='iphone-16',
+        description='айфон',
+        price=100000,
+        stock=10,
+        is_active=True,
+    )
+    cart = Cart.objects.create(user=user)
+    cart_item = CartItem.objects.create(
+        cart=cart,
+        product=product,
+        quantity=2,
+    )
+    client = APIClient()
+    client.force_authenticate(user=user)
+    response = client.patch(
+        f'/api/shop/cart/items/{cart_item.id}/',
+        {
+            'quantity': 5,
+        },
+        format='json',
+    )
+    assert response.status_code == 200
+    cart_item.refresh_from_db()
+    assert cart_item.quantity == 5
+    assert response.data == {
+        'message': 'Количество обновлено.',
+        'quantity': 5,
+    }
+
+@pytest.mark.django_db
+def test_update_cart_item_quantity_invalid():
+    user = User.objects.create(username='max', password='12345')
+    category = Category.objects.create(
+        name='Телефоны',
+        slug='phones',
+    )
+    product = Product.objects.create(
+        category=category,
+        name='iPhone 16',
+        slug='iphone-16',
+        description='айфон',
+        price=100000,
+        stock=10,
+        is_active=True,
+    )
+    cart = Cart.objects.create(user=user)
+    cart_item = CartItem.objects.create(
+        cart=cart,
+        product=product,
+        quantity=2,
+    )
+    client = APIClient()
+    client.force_authenticate(user=user)
+    response = client.patch(
+        f'/api/shop/cart/items/{cart_item.id}/',
+        {
+            'quantity': 0,
+        },
+        format='json',
+    )
+    assert response.status_code == 400
+    cart_item.refresh_from_db()
+    assert cart_item.quantity == 2
+
+@pytest.mark.django_db
+def test_update_cart_item_of_other_user_returns_404():
+    owner = User.objects.create(username='owner', password='12345')
+    stranger = User.objects.create(username='stranger', password='12345')
+    category = Category.objects.create(
+        name='Телефоны',
+        slug='phones',
+    )
+    product = Product.objects.create(
+        category=category,
+        name='iPhone 16',
+        slug='iphone-16',
+        description='айфон',
+        price=100000,
+        stock=10,
+        is_active=True,
+    )
+    cart = Cart.objects.create(user=owner)
+    cart_item = CartItem.objects.create(
+        cart=cart,
+        product=product,
+        quantity=2,
+    )
+    client = APIClient()
+    client.force_authenticate(user=stranger)
+    response = client.patch(
+        f'/api/shop/cart/items/{cart_item.id}/',
+        {
+            'quantity': 5,
+        },
+        format='json',
+    )
+    assert response.status_code == 404
+
+@pytest.mark.django_db
+def test_delete_cart_item():
+    user = User.objects.create(username='max', password='12345')
+    category = Category.objects.create(
+        name='Телефоны',
+        slug='phones',
+    )
+    product = Product.objects.create(
+        category=category,
+        name='iPhone 16',
+        slug='iphone-16',
+        description='айфон',
+        price=100000,
+        stock=10,
+        is_active=True,
+    )
+    cart = Cart.objects.create(user=user)
+    cart_item = CartItem.objects.create(
+        cart=cart,
+        product=product,
+        quantity=2,
+    )
+    client = APIClient()
+    client.force_authenticate(user=user)
+    response = client.delete(
+        f'/api/shop/cart/items/{cart_item.id}/'
+    )
+    assert response.status_code == 200
+    assert response.data == {
+        'message': 'Товар удалён из корзины.'
+    }
+    assert not CartItem.objects.filter(id=cart_item.id).exists()
+
+
+@pytest.mark.django_db
+def test_delete_cart_item_of_other_user_returns_404():
+    owner = User.objects.create(username='owner', password='12345')
+    stranger = User.objects.create(username='stranger', password='12345')
+    category = Category.objects.create(
+        name='Телефоны',
+        slug='phones',
+    )
+    product = Product.objects.create(
+        category=category,
+        name='iPhone 16',
+        slug='iphone-16',
+        description='айфон',
+        price=100000,
+        stock=10,
+        is_active=True,
+    )
+    cart = Cart.objects.create(user=owner)
+    cart_item = CartItem.objects.create(
+        cart=cart,
+        product=product,
+        quantity=2,
+    )
+    client = APIClient()
+    client.force_authenticate(user=stranger)
+    response = client.delete(
+        f'/api/shop/cart/items/{cart_item.id}/'
+    )
+    assert response.status_code == 404
+    assert CartItem.objects.filter(id=cart_item.id).exists()

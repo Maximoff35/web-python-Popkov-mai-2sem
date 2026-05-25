@@ -23,3 +23,29 @@ def add_product_to_cart(user, product_id, quantity):
         cart_item.quantity = quantity
     cart_item.save()
     return cart_item
+
+
+def update_cart_item_quantity(user, cart_item_id, quantity):
+    """
+    Изменяет количество товара в корзине пользователя.
+    """
+    if quantity <= 0:
+        raise InvalidQuantity()
+    try:
+        cart_item = CartItem.objects.get(id=cart_item_id, cart__user=user)
+    except CartItem.DoesNotExist:
+        raise ProductNotFound(details={'cart_item_id': cart_item_id})
+    cart_item.quantity = quantity
+    cart_item.save()
+    return cart_item
+
+
+def delete_cart_item(user, cart_item_id):
+    """
+    Удаляет товар из корзины пользователя.
+    """
+    try:
+        cart_item = CartItem.objects.get(id=cart_item_id, cart__user=user)
+    except CartItem.DoesNotExist:
+        raise ProductNotFound(details={'cart_item_id': cart_item_id})
+    cart_item.delete()

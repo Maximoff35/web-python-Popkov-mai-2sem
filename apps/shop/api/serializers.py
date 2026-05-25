@@ -75,3 +75,9 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['id', 'status', 'created_at', 'items']
+
+class UpdateCartItemSerializer(serializers.Serializer):
+    """
+    Сериализатор изменения количества товара в корзине.
+    """
+    quantity = serializers.IntegerField(min_value=1)

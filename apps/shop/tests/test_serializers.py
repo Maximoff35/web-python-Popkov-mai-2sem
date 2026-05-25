@@ -8,6 +8,7 @@ from apps.shop.api.serializers import (
     CartSerializer,
     OrderItemSerializer,
     OrderSerializer,
+    UpdateCartItemSerializer
 )
 
 @pytest.mark.django_db
@@ -200,3 +201,26 @@ def test_order_serializer_returns_items():
             'quantity': 5,
         },
     ]
+
+def test_update_cart_item_serializer_valid_data():
+    serializer = UpdateCartItemSerializer(data={'quantity': 3})
+    assert serializer.is_valid()
+    assert serializer.validated_data == {'quantity': 3}
+
+
+def test_update_cart_item_serializer_invalid_zero_quantity():
+    serializer = UpdateCartItemSerializer(data={'quantity': 0})
+    assert not serializer.is_valid()
+    assert 'quantity' in serializer.errors
+
+
+def test_update_cart_item_serializer_invalid_negative_quantity():
+    serializer = UpdateCartItemSerializer(data={'quantity': -1})
+    assert not serializer.is_valid()
+    assert 'quantity' in serializer.errors
+
+
+def test_update_cart_item_serializer_invalid_non_integer_quantity():
+    serializer = UpdateCartItemSerializer(data={'quantity': 'abc'})
+    assert not serializer.is_valid()
+    assert 'quantity' in serializer.errors
