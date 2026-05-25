@@ -236,3 +236,79 @@ def test_delete_cart_item_raises_product_not_found_for_other_user_item():
             cart_item_id=cart_item.id,
         )
     assert CartItem.objects.filter(id=cart_item.id).exists()
+
+@pytest.mark.django_db
+def test_create_order_from_cart_notifies_notification_service(
+    monkeypatch,
+    django_capture_on_commit_callbacks,
+):
+    user = User.objects.create(username='max', password='12345')
+    category = Category.objects.create(name='Телефоны', slug='phones')
+    product = Product.objects.create(
+        category=category,
+        name='iPhone 16',
+        slug='iphone-16',
+        description='айфон',
+        price=100000,
+        stock=5,
+        is_active=True,
+    )
+    cart = Cart.objects.create(user=user)
+    CartItem.objects.create(cart=cart, product=product, quantity=2)
+    called = {}
+    def fake_notify_order_created(order_id: int, user_id: int):
+        called['order_id'] = order_id
+        called['user_id'] = user_id
+    monkeypatch.setattr(
+        'apps.shop.services.order_service.notify_order_created',
+        fake_notify_order_created,
+    )
+    with django_capture_on_commit_callbacks(execute=True):
+        order = create_order_from_cart(user=user)
+    assert called == {
+        'order_id': order.id,
+        'user_id': user.id,
+    }
+
+@pytest.mark.django_db
+def test_create_order_from_cart_does_not_notify_when_cart_is_empty(monkeypatch):
+    user = User.objects.create(username='max', password='12345')
+    Cart.objects.create(user=user)
+    called = False
+    def fake_notify_order_created(order_id: int, user_id: int):
+        nonlocal called
+        called = True
+    monkeypatch.setattr(
+        'apps.shop.services.order_service.notify_order_created',
+        fake_notify_order_created,
+    )
+    with pytest.raises(EmptyCart):
+        create_order_from_cart(user=user)
+    assert called is False
+
+@pytest.mark.django_db
+def test_create_order_from_cart_does_not_notify_when_not_enough_stock(monkeypatch):
+    user = User.objects.create(username='max', password='12345')
+    category = Category.objects.create(name='Телефоны', slug='phones')
+    product = Product.objects.create(
+        category=category,
+        name='iPhone 16',
+        slug='iphone-16',
+        description='айфон',
+        price=100000,
+        stock=1,
+        is_active=True,
+    )
+    cart = Cart.objects.create(user=user)
+    CartItem.objects.create(cart=cart, product=product, quantity=2)
+    called = False
+    def fake_notify_order_created(order_id: int, user_id: int):
+        nonlocal called
+        called = True
+    monkeypatch.setattr(
+        'apps.shop.services.order_service.notify_order_created',
+        fake_notify_order_created,
+    )
+    with pytest.raises(NotEnoughStock):
+        create_order_from_cart(user=user)
+    assert called is False

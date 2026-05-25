@@ -126,3 +126,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
 }
+
+NOTIFICATION_SERVICE_URL = config(
+    'NOTIFICATION_SERVICE_URL',
+    default='http://127.0.0.1:8001/api/notifications'
+)

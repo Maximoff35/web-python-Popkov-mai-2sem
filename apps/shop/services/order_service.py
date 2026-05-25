@@ -1,6 +1,7 @@
 from django.db import transaction
 from apps.shop.models import Cart, Order, OrderItem
 from apps.shop.domain.exceptions import EmptyCart, NotEnoughStock
+from apps.shop.integrations.notification_client import notify_order_created
 
 
 def create_order_from_cart(user):
@@ -49,5 +50,9 @@ def create_order_from_cart(user):
             product.save()
 
         cart_items.delete()
+
+        transaction.on_commit(
+            lambda: notify_order_created(order_id=order.id, user_id=user.id)
+        )
 
     return order
