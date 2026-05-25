@@ -12,6 +12,7 @@ from notification_service.auth import (
     get_current_user,
 )
 from notification_service.logger import setup_logging
+from notification_service.dependencies import verify_service_token
 import logging
 
 
@@ -73,7 +74,11 @@ async def protected_endpoint(current_user: str = Depends(get_current_user)):
     response_model=NotificationResponseSchema,
     status_code=202,
 )
-async def create_order_notification(data: NotificationCreateSchema, background_tasks: BackgroundTasks):
+async def create_order_notification(
+        data: NotificationCreateSchema,
+        background_tasks: BackgroundTasks,
+        _: None = Depends(verify_service_token),
+):
     logger.info(
         'Order-created notification requested: order_id=%s user_id=%s',
         data.order_id,

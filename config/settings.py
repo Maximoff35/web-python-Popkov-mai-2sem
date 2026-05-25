@@ -131,3 +131,8 @@ NOTIFICATION_SERVICE_URL = config(
     'NOTIFICATION_SERVICE_URL',
     default='http://127.0.0.1:8001/api/notifications'
 )
+
+SERVICE_TOKEN = config(
+    'SERVICE_TOKEN',
+    default='dev-service-token',
+)

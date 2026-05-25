@@ -18,7 +18,10 @@ def notify_order_created(order_id: int, user_id: int) -> None:
         'message': f'Order {order_id} created.',
     }
     try:
-        response = requests.post(url, json=payload, timeout=3)
+        headers = {
+            'X-Service-Token': settings.SERVICE_TOKEN,
+        }
+        response = requests.post(url, json=payload, headers=headers, timeout=3)
         response.raise_for_status()
     except requests.RequestException as error:
         logger.warning('Failed to notify notification service about order %s: %s', order_id, error)
