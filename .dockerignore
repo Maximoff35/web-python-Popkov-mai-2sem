@@ -1,0 +1,14 @@
+.git
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.mypy_cache
+.coverage
+htmlcov
+db.sqlite3
+ugc.sqlite3
+frontend/__pycache__
+frontend/routes/__pycache__

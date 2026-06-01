@@ -1829,3 +1829,62 @@ Authorization: Bearer <access_token>
 - тестирование backend-системы.
 
 Итоговая система готова к подключению frontend и демонстрации полного пользовательского сценария.
+
+------------------------------------------------------------------------
+
+## Frontend-приложение
+
+В проект также добавлен отдельный Python frontend на Flask, который работает как пользовательский интерфейс для всех backend-сервисов.
+
+Frontend доступен по маршрутам:
+
+- /register
+- /login
+- /products
+- /products/<id>
+- /cart
+- /orders
+
+Frontend работает с тремя сервисами:
+
+Django API:             http://127.0.0.1:8000
+Flask UGC Service:      http://127.0.0.1:5000
+FastAPI Notification:   http://127.0.0.1:8001
+
+### Локальный запуск frontend
+
+После установки зависимостей и запуска backend-сервисов frontend можно запустить отдельно:
+
+```bash
+python -m frontend.app
+```
+
+Адрес frontend:
+
+http://127.0.0.1:5050
+
+------------------------------------------------------------------------
+
+## Docker-сборка
+
+Для проекта добавлена Docker-сборка всех сервисов:
+
+- django
+- ugc
+- notification
+- frontend
+
+### Сборка и запуск через Docker
+
+Запуск всех сервисов с пересборкой:
+
+```bash
+docker compose up --build
+```
+
+После запуска будут доступны:
+
+Frontend:      http://127.0.0.1:5050
+Django API:    http://127.0.0.1:8000
+UGC Service:   http://127.0.0.1:5000
+Notifications: http://127.0.0.1:8001

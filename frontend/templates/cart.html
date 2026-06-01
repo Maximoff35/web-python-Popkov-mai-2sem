@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Корзина{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/forms.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cart.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="panel">
+    <div class="section-head">
+        <div>
+            <h1>Корзина</h1>
+            <p>Позиции: {{ cart_items | length }}</p>
+        </div>
+        <div class="cart-summary">
+            <span>Итого</span>
+            <strong>{{ "%.2f"|format(total) }} ₽</strong>
+        </div>
+    </div>
+
+    {% if cart_items %}
+        <div class="table-stack">
+            {% for item in cart_items %}
+                <article class="cart-row">
+                    <div>
+                        <strong>{{ item.product_name }}</strong>
+                        <p>Товар ID: {{ item.product_id }}</p>
+                        <small>{{ item.price }} ₽ за шт.</small>
+                    </div>
+
+                    <div class="quantity-controls">
+                        <form method="post" action="{{ url_for('update_cart_item', item_id=item.id) }}" class="quantity-action-form">
+                            <input type="hidden" name="action" value="decrease">
+                            <input type="hidden" name="current_quantity" value="{{ item.quantity }}">
+                            <button type="submit" class="secondary">-</button>
+                        </form>
+
+                        <form method="post" action="{{ url_for('update_cart_item', item_id=item.id) }}" class="quantity-edit-form">
+                            <input type="hidden" name="action" value="set">
+                            <input type="hidden" name="current_quantity" value="{{ item.quantity }}">
+                            <input
+                                type="number"
+                                name="quantity"
+                                min="1"
+                                value="{{ item.quantity }}"
+                                class="quantity-input"
+                                aria-label="Количество"
+                            >
+                        </form>
+
+                        <form method="post" action="{{ url_for('update_cart_item', item_id=item.id) }}" class="quantity-action-form">
+                            <input type="hidden" name="action" value="increase">
+                            <input type="hidden" name="current_quantity" value="{{ item.quantity }}">
+                            <button type="submit" class="secondary">+</button>
+                        </form>
+
+                        <form method="post" action="{{ url_for('delete_cart_item', item_id=item.id) }}">
+                            <button type="submit" class="danger">Удалить</button>
+                        </form>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+
+        <form method="post" action="{{ url_for('create_order') }}" class="order-form">
+            <button type="submit">Оформить заказ</button>
+        </form>
+    {% else %}
+        <p>Корзина пуста. Перейдите в каталог и добавьте товары.</p>
+    {% endif %}
+</section>
+{% endblock %}

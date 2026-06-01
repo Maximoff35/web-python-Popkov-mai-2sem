@@ -1,0 +1,20 @@
+.section-head,
+.review-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+}
+
+.review-list {
+    display: grid;
+    gap: 14px;
+    margin-top: 16px;
+}
+
+.review-card {
+    padding: 16px;
+    border-radius: 18px;
+    background: #fffdf7;
+    border: 1px solid rgba(111, 91, 43, 0.1);
+}

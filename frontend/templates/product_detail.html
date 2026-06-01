@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/forms.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/products.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/product_detail.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="detail-grid">
+    <article class="panel">
+        <h1>{{ product.name }}</h1>
+        <p class="price">{{ product.price }} ₽</p>
+        <p>Товар ID: {{ product.id }}</p>
+        <p>slug: {{ product.slug }}</p>
+        <p>Доступно: {{ product.stock }} шт.</p>
+
+        <form method="post" action="{{ url_for('add_to_cart', product_id=product.id) }}" class="inline-form">
+            <label>
+                <span>Количество</span>
+                <input type="number" name="quantity" min="1" value="1">
+            </label>
+            <button type="submit">Добавить в корзину</button>
+        </form>
+    </article>
+
+    <article class="panel">
+        <h2>Оставить отзыв</h2>
+        <form method="post" action="{{ url_for('create_review', product_id=product.id) }}" class="form-grid">
+            <fieldset class="rating-group">
+                <legend>Оценка</legend>
+                <div class="rating-options">
+                    <input type="radio" name="rating" id="rating-1" value="1">
+                    <label for="rating-1" class="rating-chip">1</label>
+
+                    <input type="radio" name="rating" id="rating-2" value="2">
+                    <label for="rating-2" class="rating-chip">2</label>
+
+                    <input type="radio" name="rating" id="rating-3" value="3">
+                    <label for="rating-3" class="rating-chip">3</label>
+
+                    <input type="radio" name="rating" id="rating-4" value="4">
+                    <label for="rating-4" class="rating-chip">4</label>
+
+                    <input type="radio" name="rating" id="rating-5" value="5" checked>
+                    <label for="rating-5" class="rating-chip">5</label>
+                </div>
+            </fieldset>
+            <label>
+                <span>Текст отзыва</span>
+                <textarea name="text" rows="5" class="review-textarea" placeholder="Хороший товар, всё понравилось." required></textarea>
+            </label>
+            <label class="checkbox-row">
+                <input type="checkbox" name="activate_now">
+                <span>Активировать отзыв сразу</span>
+            </label>
+            <button type="submit">Оставить отзыв</button>
+        </form>
+        <p class="hint">Без активации новый отзыв будет ожидать модерации.</p>
+    </article>
+</section>
+
+<section class="panel">
+    <div class="section-head">
+        <div>
+            <h2>Отзывы</h2>
+        </div>
+    </div>
+
+    <div class="review-list">
+        {% for review in reviews %}
+            <article class="review-card">
+                <div class="review-top">
+                    <strong>{{ review.user_name }}</strong>
+                    <span>{{ review.rating }}/5</span>
+                </div>
+                <p>{{ review.text }}</p>
+                <small>Статус: {{ review.status }} · {{ review.created_at }}</small>
+            </article>
+        {% else %}
+            <p>Пока нет активных отзывов. Можно создать первый.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

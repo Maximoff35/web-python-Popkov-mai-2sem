@@ -1,0 +1,58 @@
+services:
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["/app/docker/django.sh"]
+    environment:
+      SECRET_KEY: django-insecure-mrk1ik&ynxx4^%idkrs-6t@#-^+6*awyl3mh115i6x+3m#up$n
+      DEBUG: "True"
+      ALLOWED_HOSTS: 127.0.0.1,localhost,django
+      NOTIFICATION_SERVICE_URL: http://notification:8001/api/notifications
+      SERVICE_TOKEN: dev-service-token
+    ports:
+      - "8000:8000"
+
+  ugc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["/app/docker/ugc.sh"]
+    environment:
+      DJANGO_SHOP_API_URL: http://django:8000/api/shop
+      DJANGO_AUTH_ME_URL: http://django:8000/api/auth/me/
+      UGC_DATABASE_URL: sqlite:////app/ugc.sqlite3
+    depends_on:
+      - django
+    ports:
+      - "5000:5000"
+
+  notification:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["/app/docker/notification.sh"]
+    environment:
+      DJANGO_SHOP_API_URL: http://django:8000/api/shop
+      SERVICE_TOKEN: dev-service-token
+    depends_on:
+      - django
+    ports:
+      - "8001:8001"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["/app/docker/frontend.sh"]
+    environment:
+      DJANGO_API_URL: http://django:8000
+      UGC_API_URL: http://ugc:5000
+      NOTIFICATION_API_URL: http://notification:8001
+      FRONTEND_SECRET_KEY: frontend-demo-secret
+    depends_on:
+      - django
+      - ugc
+      - notification
+    ports:
+      - "5050:5050"

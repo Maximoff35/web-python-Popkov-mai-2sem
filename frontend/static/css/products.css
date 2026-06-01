@@ -1,0 +1,14 @@
+.cards-grid,
+.detail-grid {
+    display: grid;
+    gap: 18px;
+    margin-top: 18px;
+}
+
+.cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.detail-grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}

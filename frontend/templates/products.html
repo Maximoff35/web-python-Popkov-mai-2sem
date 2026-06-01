@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Товары{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/forms.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/products.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="panel filters-panel">
+    <h1>Товары</h1>
+    <form method="get" class="filters-grid">
+        <label>
+            <span>Поиск</span>
+            <input type="text" name="search" value="{{ filters.search }}" placeholder="iphone">
+        </label>
+        <label>
+            <span>Категория slug</span>
+            <input type="text" name="category" value="{{ filters.category }}" placeholder="phones">
+        </label>
+        <button type="submit">Применить</button>
+    </form>
+</section>
+
+{% if error_message %}
+    <section class="panel">
+        <p>{{ error_message }}</p>
+    </section>
+{% else %}
+    <section class="cards-grid">
+        {% for product in products %}
+            <article class="product-card">
+                <h3>{{ product.name }}</h3>
+                <p>ID: {{ product.id }}</p>
+                <p class="price">{{ product.price }} ₽</p>
+                <p>Остаток: {{ product.stock }} шт.</p>
+                <p class="slug">slug: {{ product.slug }}</p>
+                <a class="button-link" href="{{ url_for('product_detail', product_id=product.id) }}">Открыть товар</a>
+            </article>
+        {% else %}
+            <article class="panel empty-state">
+                <h3>Товары не найдены</h3>
+                <p>Проверьте фильтры или добавьте товары в админке Django.</p>
+            </article>
+        {% endfor %}
+    </section>
+{% endif %}
+{% endblock %}

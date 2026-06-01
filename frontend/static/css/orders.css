@@ -1,0 +1,32 @@
+.detail-grid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.table-stack,
+.order-list {
+    display: grid;
+    gap: 14px;
+    margin-top: 16px;
+}
+
+.cart-row,
+.order-link {
+    padding: 16px;
+    border-radius: 18px;
+    background: #fffdf7;
+    border: 1px solid rgba(111, 91, 43, 0.1);
+}
+
+.cart-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+}
+
+.order-link {
+    display: grid;
+    gap: 4px;
+}

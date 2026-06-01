@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Заказы{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/orders.css') }}">{% endblock %}
+
+{% block content %}
+<section class="detail-grid">
+    <article class="panel">
+        <h1>Заказы</h1>
+        <div class="order-list">
+            {% for order in orders %}
+                <a class="order-link" href="{{ url_for('orders', order_id=order.id) }}">
+                    <strong>Заказ #{{ order.id }}</strong>
+                    <span>{{ order.status }}</span>
+                    <small>{{ order.created_at }}</small>
+                </a>
+            {% else %}
+                <p>Заказов пока нет.</p>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="panel">
+        <h2>Детали заказа</h2>
+        {% if selected_order %}
+            <h2>Заказ #{{ selected_order.id }}</h2>
+            <p>Статус: {{ selected_order.status }}</p>
+            <p>Создан: {{ selected_order.created_at }}</p>
+            <div class="table-stack">
+                {% for item in selected_order_items %}
+                    <article class="cart-row">
+                        <div>
+                            <strong>{{ item.product_name }}</strong>
+                            <small>Товар ID: {{ item.product_id }}</small>
+                        </div>
+                        <div>
+                            <p>{{ item.quantity }} шт.</p>
+                            <small>{{ item.price }} ₽</small>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Выберите заказ слева, чтобы посмотреть его состав.</p>
+        {% endif %}
+    </article>
+</section>
+{% endblock %}
